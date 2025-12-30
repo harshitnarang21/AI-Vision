@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>AI Navigation Assistant for the Blind</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            color: #000000;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            color: #666666;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            padding: 30px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #000000;
+        }
+
+        .card h2 {
+            color: #000000;
+            margin-bottom: 24px;
+            font-size: 1.3em;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85em;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: 1px solid #000000;
+            background: #000000;
+            color: #ffffff;
+            font-size: 0.9em;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .btn-danger {
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            color: #999999;
+            border-color: #e5e5e5;
+        }
+
+        .status {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid;
+        }
+
+        .status.active {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .status.inactive {
+            background: #ffffff;
+            color: #666666;
+            border-color: #e5e5e5;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000000;
+            border: 1px solid #000000;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        #videoFrame {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #mobileVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .analysis-section {
+            max-height: 400px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .analysis-section::-webkit-scrollbar {
+            width: 1px;
+        }
+
+        .analysis-section::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        .analysis-section::-webkit-scrollbar-thumb {
+            background: #000000;
+        }
+
+        .analysis-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-left: 2px solid #000000;
+            transition: border-color 0.2s ease;
+        }
+
+        .analysis-item:hover {
+            border-left-color: #000000;
+        }
+
+        .analysis-item h3 {
+            color: #000000;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analysis-item p {
+            color: #333333;
+            line-height: 1.6;
+            font-size: 0.9em;
+            font-weight: 300;
+        }
+
+        .obstacle-warning {
+            background: #000000;
+            border-left-color: #ffffff;
+            border-color: #000000;
+        }
+
+        .obstacle-warning h3 {
+            color: #ffffff;
+        }
+
+        .obstacle-warning p {
+            color: #ffffff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999999;
+        }
+
+        .loading p {
+            font-size: 0.85em;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .spinner {
+            border: 2px solid #e5e5e5;
+            border-top: 2px solid #000000;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .audio-controls input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e5e5;
+            background: #ffffff;
+            color: #000000;
+            font-size: 0.9em;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .audio-controls input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .audio-controls input::placeholder {
+            color: #999999;
+            font-weight: 300;
+        }
+
+        .btn-small {
+            padding: 12px 20px;
+            font-size: 0.85em;
+        }
+
+        #videoPlaceholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666666;
+        }
+
+        #videoPlaceholder p {
+            font-size: 0.85em;
+            font-weight: 300;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Navigation Assistant</h1>
+            <p>Real-time vision assistance for the blind and visually impaired</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Camera Control</h2>
+                <div id="status" class="status inactive">Camera: Inactive</div>
+                
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-primary" onclick="startCamera()">
+                        Start Camera
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" onclick="stopCamera()" disabled>
+                        Stop Camera
+                    </button>
+                    <button id="useServerCameraBtn" class="btn btn-primary" onclick="useServerCamera()" style="display: none; margin-top: 10px;">
+                        Use Server Camera Instead
+                    </button>
+                </div>
+
+                <div class="video-container">
+                    <video id="mobileVideo" autoplay playsinline style="display: none; width: 100%; height: 100%; object-fit: cover;"></video>
+                    <img id="videoFrame" src="" alt="Camera feed" style="display: none;">
+                    <div id="videoPlaceholder" class="loading">
+                        <div class="spinner"></div>
+                        <p>Camera feed will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Analysis Results</h2>
+                <div id="analysis" class="analysis-section">
+                    <div class="loading">
+                        <p>Waiting for analysis...</p>
+                    </div>
+                </div>
+
+                <div class="audio-controls">
+                    <input type="text" id="speakText" placeholder="Type text to speak...">
+                    <button class="btn btn-primary btn-small" onclick="speakText()">Speak</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cameraActive = false;
+        let frameInterval = null;
+        let analysisInterval = null;
+        let mobileStream = null;
+        let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Client-side text-to-speech for mobile devices
+        let speechQueue = [];
+        let isSpeaking = false;
+        
+        // Initialize Web Speech API
+        let speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+        let canSpeak = false;
+        
+        if (speechSynthesis) {
+            canSpeak = true;
+            console.log('✓ Web Speech API available');
+        } else {
+            console.log('⚠️ Web Speech API not available');
+        }
+        
+        function speakOnDevice(text, priority = 0) {
+            if (!canSpeak) {
+                console.log('Speech API not available, text:', text);
+                return;
+            }
+            
+            // Add to queue
+            speechQueue.push({ text, priority });
+            speechQueue.sort((a, b) => b.priority - a.priority);
+            
+            // Start speaking if not already
+            if (!isSpeaking) {
+                processSpeechQueue();
+            }
+        }
+        
+        function processSpeechQueue() {
+            if (speechQueue.length === 0) {
+                isSpeaking = false;
+                return;
+            }
+            
+            isSpeaking = true;
+            const { text } = speechQueue.shift();
+            
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+            
+            // Create utterance
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0; // Normal speed
+            utterance.pitch = 1.0; // Normal pitch
+            utterance.volume = 1.0; // Full volume
+            
+            // Try to use a good voice
+            const voices = speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                // Prefer female voices (often clearer)
+                const preferredVoice = voices.find(v => 
+                    v.name.includes('Samantha') || 
+                    v.name.includes('Karen') || 
+                    v.name.includes('Female') ||
+                    v.lang.startsWith('en')
+                ) || voices[0];
+                utterance.voice = preferredVoice;
+            }
+            
+            // Speak
+            utterance.onend = () => {
+                // Process next in queue
+                setTimeout(() => processSpeechQueue(), 100);
+            };
+            
+            utterance.onerror = (error) => {
+                console.error('Speech error:', error);
+                // Continue with next
+                setTimeout(() => processSpeechQueue(), 100);
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Load voices when available
+        if (speechSynthesis) {
+            speechSynthesis.onvoiceschanged = () => {
+                console.log('Voices loaded:', speechSynthesis.getVoices().length);
+            };
+            // Try to get voices immediately
+            if (speechSynthesis.getVoices().length > 0) {
+                console.log('Voices available:', speechSynthesis.getVoices().length);
+            }
+        }
+
+        async function startCamera() {
+            // Use mobile camera if on mobile device and HTTPS is available
+            if (isMobileDevice) {
+                // Check if HTTPS is available (required for mobile camera)
+                const isSecureContext = window.isSecureContext || 
+                                       location.protocol === 'https:' || 
+                                       location.hostname === 'localhost' || 
+                                       location.hostname === '127.0.0.1';
+                
+                if (isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    await startMobileCamera();
+                } else {
+                    // Not HTTPS or API not available - use server camera
+                    console.log('Using server camera (HTTPS not available or camera API not supported)');
+                    await startServerCamera();
+                }
+            } else {
+                await startServerCamera();
+            }
+        }
+
+        async function startMobileCamera() {
+            try {
+                // Check if we're on HTTPS or localhost (required for camera access)
+                const isSecureContext = window.isSecureContext || 
+                                       location.protocol === 'https:' || 
+                                       location.hostname === 'localhost' || 
+                                       location.hostname === '127.0.0.1';
+                
+                if (!isSecureContext) {
+                    // Not HTTPS - show option to use server camera
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                    throw new Error('HTTPS_REQUIRED');
+                }
+
+                // Check if getUserMedia is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    // Fallback for older browsers
+                    navigator.mediaDevices = navigator.mediaDevices || {};
+                    navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia ||
+                        navigator.getUserMedia ||
+                        navigator.webkitGetUserMedia ||
+                        navigator.mozGetUserMedia ||
+                        navigator.msGetUserMedia;
+
+                    if (!navigator.mediaDevices.getUserMedia) {
+                        // Show server camera option
+                        document.getElementById('useServerCameraBtn').style.display = 'block';
+                        throw new Error('Camera API not supported. Use server camera instead.');
+                    }
+
+                    // Wrap legacy API in Promise
+                    navigator.mediaDevices.getUserMedia = function(constraints) {
+                        return new Promise((resolve, reject) => {
+                            const getUserMedia = navigator.getUserMedia ||
+                                navigator.webkitGetUserMedia ||
+                                navigator.mozGetUserMedia ||
+                                navigator.msGetUserMedia;
+                            getUserMedia.call(navigator, constraints, resolve, reject);
+                        });
+                    };
+                }
+
+                // Request mobile camera access with fallback options
+                let stream;
+                try {
+                    // Try with ideal settings first
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'environment', // Use back camera on mobile
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    });
+                } catch (error) {
+                    console.log('Trying fallback camera settings...');
+                    // Fallback: try with simpler constraints
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'environment'
+                            }
+                        });
+                    } catch (error2) {
+                        // Last fallback: try any camera
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: true
+                        });
+                    }
+                }
+
+                mobileStream = stream;
+                const video = document.getElementById('mobileVideo');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                document.getElementById('videoFrame').style.display = 'none';
+                document.getElementById('videoPlaceholder').style.display = 'none';
+
+                // Wait for video to be ready
+                video.onloadedmetadata = () => {
+                    video.play().catch(err => {
+                        console.error('Error playing video:', err);
+                    });
+                };
+
+                cameraActive = true;
+                document.getElementById('status').textContent = 'Camera: Active (Mobile)';
+                document.getElementById('status').className = 'status active';
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+
+                // Welcome message on device speaker
+                if (canSpeak) {
+                    setTimeout(() => {
+                        speakOnDevice('Camera started. AI Navigation Assistant is ready.', 1);
+                    }, 500);
+                }
+
+                // Start capturing and processing frames from mobile camera
+                startMobileFrameCapture();
+                startAnalysisUpdates();
+            } catch (error) {
+                console.error('Error accessing mobile camera:', error);
+                
+                // Special handling for HTTPS requirement
+                if (error.message === 'HTTPS_REQUIRED' || error.name === 'NotAllowedError' && !window.isSecureContext) {
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                    alert('⚠️ HTTPS Required for Mobile Camera\n\n' +
+                          'Modern browsers require HTTPS to access the camera (except localhost).\n\n' +
+                          'Options:\n' +
+                          '1. Click "Use Server Camera Instead" button below\n' +
+                          '2. Set up HTTPS (see MOBILE_SETUP.md)\n' +
+                          '3. Use the server\'s camera from your phone');
+                    return;
+                }
+                
+                let errorMessage = 'Failed to access camera.\n\n';
+                
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    errorMessage += 'Camera permission denied. Please:\n';
+                    errorMessage += '1. Grant camera permission in browser settings\n';
+                    errorMessage += '2. Refresh the page and try again\n\n';
+                    errorMessage += 'Or click "Use Server Camera Instead" below';
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    errorMessage += 'Camera is being used by another app. Please close other apps using the camera.';
+                } else if (error.message.includes('not supported') || error.message.includes('Camera API')) {
+                    errorMessage += error.message + '\n\nClick "Use Server Camera Instead" below';
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                } else {
+                    errorMessage += 'Error: ' + (error.message || error.name || 'Unknown error');
+                    errorMessage += '\n\nClick "Use Server Camera Instead" below';
+                    document.getElementById('useServerCameraBtn').style.display = 'block';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        async function useServerCamera() {
+            // Hide the button
+            document.getElementById('useServerCameraBtn').style.display = 'none';
+            // Use server camera instead
+            await startServerCamera();
+        }
+
+        async function startServerCamera() {
+            try {
+                const response = await fetch('/api/camera/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ camera_index: 0 })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    cameraActive = true;
+                    document.getElementById('status').textContent = 'Camera: Active (Server)';
+                    document.getElementById('status').className = 'status active';
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    
+                    // Welcome message on device speaker (if available)
+                    if (canSpeak) {
+                        setTimeout(() => {
+                            speakOnDevice('Camera started. AI Navigation Assistant is ready.', 1);
+                        }, 500);
+                    }
+                    
+                    // Start frame updates from server
+                    startFrameUpdates();
+                    startAnalysisUpdates();
+                } else {
+                    alert('Failed to start camera: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error starting camera: ' + error.message);
+            }
+        }
+
+        function startMobileFrameCapture() {
+            const video = document.getElementById('mobileVideo');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Wait for video dimensions to be available
+            const setupCanvas = () => {
+                if (video.videoWidth > 0 && video.videoHeight > 0) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                } else {
+                    // Fallback dimensions
+                    canvas.width = 1280;
+                    canvas.height = 720;
+                }
+            };
+
+            // Initial setup
+            setupCanvas();
+
+            // Update canvas size when video dimensions change
+            video.addEventListener('loadedmetadata', setupCanvas);
+
+            let frameCount = 0;
+            frameInterval = setInterval(async () => {
+                if (video.readyState >= video.HAVE_METADATA && cameraActive && mobileStream) {
+                    try {
+                        // Update canvas size if needed
+                        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                        }
+
+                        // Draw video frame to canvas
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        // Convert to blob and send to server for processing
+                        canvas.toBlob(async (blob) => {
+                            if (blob && cameraActive && mobileStream) {
+                                frameCount++;
+                                // Process every 2nd frame to reduce API calls
+                                if (frameCount % 2 === 0) {
+                                    await processMobileFrame(blob);
+                                }
+                            }
+                        }, 'image/jpeg', 0.85);
+                    } catch (error) {
+                        console.error('Error capturing frame:', error);
+                    }
+                }
+            }, 200); // Capture every 200ms (5 FPS for processing)
+        }
+
+        async function processMobileFrame(blob) {
+            try {
+                const formData = new FormData();
+                formData.append('image', blob, 'frame.jpg');
+
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const analysis = await response.json();
+                if (analysis && !analysis.error) {
+                    // Update analysis display (this will also trigger audio on device)
+                    displayAnalysis(analysis);
+                }
+            } catch (error) {
+                console.error('Error processing frame:', error);
+            }
+        }
+
+        async function stopCamera() {
+            // Stop any ongoing speech
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+                speechQueue = [];
+                isSpeaking = false;
+            }
+            
+            // Stop mobile camera stream
+            if (mobileStream) {
+                mobileStream.getTracks().forEach(track => track.stop());
+                mobileStream = null;
+                document.getElementById('mobileVideo').srcObject = null;
+                document.getElementById('mobileVideo').style.display = 'none';
+            }
+
+            // Stop server camera if active
+            if (!isMobileDevice) {
+                try {
+                    const response = await fetch('/api/camera/stop', {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                } catch (error) {
+                    console.error('Error stopping server camera:', error);
+                }
+            }
+
+            cameraActive = false;
+            document.getElementById('status').textContent = 'Camera: Inactive';
+            document.getElementById('status').className = 'status inactive';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            // Stop updates
+            stopFrameUpdates();
+            stopAnalysisUpdates();
+            
+            document.getElementById('videoFrame').style.display = 'none';
+            document.getElementById('videoPlaceholder').style.display = 'block';
+        }
+
+        function startFrameUpdates() {
+            frameInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/camera/frame');
+                    const data = await response.json();
+                    
+                    if (data.frame) {
+                        document.getElementById('videoFrame').src = 'data:image/jpeg;base64,' + data.frame;
+                        document.getElementById('videoFrame').style.display = 'block';
+                        document.getElementById('videoPlaceholder').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Frame update error:', error);
+                }
+            }, 100); // Update every 100ms
+        }
+
+        function stopFrameUpdates() {
+            if (frameInterval) {
+                clearInterval(frameInterval);
+                frameInterval = null;
+            }
+        }
+
+        function startAnalysisUpdates() {
+            analysisInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/analysis');
+                    const data = await response.json();
+                    
+                    if (data && Object.keys(data).length > 0 && !data.error) {
+                        displayAnalysis(data);
+                    }
+                } catch (error) {
+                    console.error('Analysis update error:', error);
+                }
+            }, 2000); // Update every 2 seconds
+        }
+
+        function stopAnalysisUpdates() {
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+        }
+
+        function displayAnalysis(analysis) {
+            const analysisDiv = document.getElementById('analysis');
+            let html = '';
+            let audioText = '';
+
+            // Obstacle warnings (highest priority)
+            if (analysis.obstacles && analysis.obstacles.length > 0) {
+                html += '<div class="analysis-item obstacle-warning">';
+                html += '<h3>Obstacle Warning</h3>';
+                const warnings = [];
+                analysis.obstacles.forEach(obstacle => {
+                    const name = obstacle.name || 'object';
+                    const distance = obstacle.distance_estimate || 'unknown distance';
+                    html += `<p><strong>${name}</strong> - ${distance}</p>`;
+                    
+                    // Build audio warning
+                    const direction = obstacle.position ? getDirection(obstacle.position) : 'ahead';
+                    warnings.push(`${direction} ${name} at ${distance}`);
+                });
+                html += '</div>';
+                
+                // Speak obstacle warning immediately
+                if (warnings.length > 0) {
+                    audioText = 'Warning. ' + warnings.join('. ') + '.';
+                    speakOnDevice(audioText, 10); // High priority
+                    return; // Don't speak other things if obstacles detected
+                }
+            }
+
+            // Scene description (high priority)
+            if (analysis.description && analysis.description.trim()) {
+                html += '<div class="analysis-item">';
+                html += '<h3>Scene Description</h3>';
+                html += `<p>${analysis.description}</p>`;
+                html += '</div>';
+                
+                if (!audioText) {
+                    audioText = analysis.description;
+                    speakOnDevice(audioText, 5);
+                    return; // Don't speak other things if we have description
+                }
+            }
+
+            // Detected objects
+            if (analysis.objects && analysis.objects.length > 0) {
+                html += '<div class="analysis-item">';
+                html += '<h3>Detected Objects</h3>';
+                const importantObjects = analysis.objects
+                    .filter(obj => obj.confidence > 0.7)
+                    .slice(0, 3);
+                importantObjects.forEach(obj => {
+                    html += `<p><strong>${obj.name}</strong> (${Math.round(obj.confidence * 100)}% confidence)</p>`;
+                });
+                html += '</div>';
+                
+                if (!audioText && importantObjects.length > 0) {
+                    const objectNames = importantObjects.map(obj => obj.name).join(', ');
+                    audioText = `Detected: ${objectNames}`;
+                    speakOnDevice(audioText, 3);
+                }
+            }
+
+            // Text content
+            if (analysis.text && analysis.text.trim()) {
+                html += '<div class="analysis-item">';
+                html += '<h3>Text Detected</h3>';
+                const textPreview = analysis.text.substring(0, 200);
+                html += `<p>${textPreview}${analysis.text.length > 200 ? '...' : ''}</p>`;
+                html += '</div>';
+                
+                if (!audioText) {
+                    audioText = `Text detected: ${textPreview}`;
+                    speakOnDevice(audioText, 2);
+                }
+            }
+
+            // Tags (if no description)
+            if (!analysis.description && analysis.tags && analysis.tags.length > 0) {
+                html += '<div class="analysis-item">';
+                html += '<h3>Tags</h3>';
+                html += `<p>${analysis.tags.slice(0, 10).join(', ')}</p>`;
+                html += '</div>';
+                
+                if (!audioText) {
+                    const tags = analysis.tags.slice(0, 5).join(', ');
+                    audioText = `Scene contains: ${tags}`;
+                    speakOnDevice(audioText, 4);
+                }
+            }
+
+            // Faces
+            if (analysis.faces && analysis.faces.length > 0) {
+                html += '<div class="analysis-item">';
+                html += '<h3>Faces Detected</h3>';
+                analysis.faces.forEach((face, idx) => {
+                    html += `<p>Face ${idx + 1}: ${face.gender}, age ~${face.age}, ${face.emotion}</p>`;
+                });
+                html += '</div>';
+                
+                if (!audioText) {
+                    const faceText = analysis.faces.length === 1 ? 
+                        `Detected 1 face` : 
+                        `Detected ${analysis.faces.length} faces`;
+                    speakOnDevice(faceText, 1);
+                }
+            }
+            
+            // Helper function to get direction from position
+            function getDirection(position) {
+                if (!position || !position.x) return 'ahead';
+                const x = position.x || 0;
+                const width = position.width || 0;
+                const centerX = x + width / 2;
+                const frameCenter = 640; // Assume 1280 width
+                const relativeX = centerX - frameCenter;
+                
+                if (Math.abs(relativeX) < 100) return 'ahead';
+                if (relativeX < -200) return 'left';
+                if (relativeX > 200) return 'right';
+                if (relativeX < 0) return 'slightly left';
+                return 'slightly right';
+            }
+
+            if (!html) {
+                html = '<div class="loading"><p>No analysis data yet...</p></div>';
+            }
+
+            analysisDiv.innerHTML = html;
+        }
+
+        async function speakText() {
+            const text = document.getElementById('speakText').value;
+            if (!text) return;
+
+            // Use device speaker if available, otherwise fallback to server
+            if (canSpeak) {
+                speakOnDevice(text, 5);
+                document.getElementById('speakText').value = '';
+            } else {
+                // Fallback to server TTS
+                try {
+                    const response = await fetch('/api/audio/speak', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text, priority: 5 })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('speakText').value = '';
+                    }
+                } catch (error) {
+                    alert('Error speaking text: ' + error.message);
+                }
+            }
+        }
+
+        // Allow Enter key to trigger speak
+        document.getElementById('speakText').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                speakText();
+            }
+        });
+
+        // Check status on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                // Update status display
+                if (status.vision_service_ready) {
+                    console.log('✓ Vision service ready');
+                } else {
+                    alert('Warning: Azure Computer Vision service is not configured. Please set up your .env file with API credentials.');
+                }
+                
+                if (status.face_service_ready) {
+                    console.log('✓ Face service ready');
+                }
+
+                // Show mobile device indicator
+                if (isMobileDevice) {
+                    const statusDiv = document.getElementById('status');
+                    const isSecureContext = window.isSecureContext || 
+                                           location.protocol === 'https:' || 
+                                           location.hostname === 'localhost' || 
+                                           location.hostname === '127.0.0.1';
+                    
+                    if (isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        statusDiv.textContent = 'Ready - Mobile Camera Mode';
+                        console.log('📱 Mobile device detected - will use device camera');
+                    } else {
+                        statusDiv.textContent = 'Ready - Server Camera Mode (HTTPS required for mobile camera)';
+                        console.log('📱 Mobile device detected - using server camera (HTTPS not available)');
+                    }
+                    
+                    // Test speech API
+                    if (canSpeak) {
+                        console.log('✓ Audio will play on device speaker');
+                        // Speak a welcome message
+                        setTimeout(() => {
+                            speakOnDevice('AI Navigation Assistant ready. Click start camera to begin.', 1);
+                        }, 1000);
+                    } else {
+                        console.log('⚠️ Audio will play on server (Web Speech API not available)');
+                    }
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

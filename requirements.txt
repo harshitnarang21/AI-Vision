@@ -1,0 +1,19 @@
+flask>=3.0.0
+flask-cors>=4.0.0
+opencv-python>=4.8.0
+pillow>=10.2.0
+numpy>=1.24.0
+pyttsx3>=2.90
+python-dotenv>=1.0.0
+requests>=2.31.0
+werkzeug>=3.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+# Detectron2 - install separately: pip install 'git+https://github.com/facebookresearch/detectron2.git'
+# For CPU-only: pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch2.0/index.html
+easyocr>=1.7.0
+# Alternative OCR: pytesseract>=0.3.10 (requires tesseract-ocr system package)
+# Optional: azure-cognitiveservices-vision-computervision>=0.9.0 (for fallback)
+# Optional: azure-cognitiveservices-vision-face>=0.5.0 (for face detection)
+# Optional: msrest>=0.7.0 (for Azure services)
+
